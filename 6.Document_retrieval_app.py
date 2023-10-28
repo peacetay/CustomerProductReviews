@@ -45,7 +45,12 @@ labels = [
 ]
 
 Rating = [1, 2, 3, 4, 5]
-key_words = st.selectbox("Select Topic", labels)
+
+Topic = ['Topic0', 'Topic1', 'Topic2', 'Topic3', 'Topic4']
+
+topic = st.selectbox("Select Topic", Topic)
+
+key_words = st.selectbox("Select keyword", labels)
 if key_words == "":
     with st.expander('Or type your own keywords'):
         input_keywords = st.text_input('Type Keywords')
@@ -99,11 +104,11 @@ if apply_button:
         simTFIDF_bi = IndexTFIDF_bi[qVectorTFIDF_bi]
         df['Similarity_TFIDF_Bigram'] = simTFIDF_bi
         df_tfidf_bi = df.sort_values(by = 'Similarity_TFIDF_Bigram', ascending=False)
-        selected_columns = ["Review Model", "Review date", "Review rating", "Original title", "Original review", "Similarity_TFIDF_Bigram", "Brand"]
+        selected_columns = ["Review Model", "Review date", "Review rating", "Original title", "Original review", "Similarity_TFIDF_Bigram", "Brand", "Topic", "Probability"]
         pd.set_option('display.max_colwidth', None)
         df_select = df_tfidf_bi[selected_columns]
         df_select = df_select.reset_index(drop=True)  # Reset the index
-        df_final = df_select[(df_select['Brand'] == brand) & (df_select['Review rating'] == rating)].head(5)
+        df_final = df_select[(df_select['Brand'] == brand) & (df_select['Topic'] == topic) & (df_select['Review rating'] == rating)].head(5)
         df_final = df_final.drop_duplicates()
         df_final.index += 1
         st.dataframe(df_final)
