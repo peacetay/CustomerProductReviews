@@ -69,7 +69,7 @@ start_price, end_price = st.select_slider(
  # Import data
 @st.cache_data
 def load_reviews():
-    data_path = r'C:\Users\Tina\OneDrive - Singapore Management University\SMU\Term 3\Text analytics\Project\App\page\processed_data.joblib'
+    data_path = r'processed_data.joblib'
     df = joblib.load(data_path)
     return df
 
