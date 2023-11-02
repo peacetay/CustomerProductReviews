@@ -37,7 +37,8 @@ Topic = ["Printing job",
      "Support and returns",
     "Print and scan quality",
      "Setup and connection",
-    "Cartridge replacement"]
+    "Cartridge replacement",
+    ""]
 
 topic = st.selectbox(label="Select Topic",
         options=Topic)
@@ -69,7 +70,8 @@ start_price, end_price = st.select_slider(
  # Import data
 @st.cache_data
 def load_reviews():
-    data_path = r'processed_data.joblib'
+    # data_path = r"C:\Users\YeTi985\OneDrive - Singapore Management University\SMU\Term 3\Text analytics\Project\App\page\processed_data.joblib"
+    data_path = r'C:\Users\Tina\OneDrive - Singapore Management University\SMU\Term 3\Text analytics\Project\App\page\processed_data.joblib'
     df = joblib.load(data_path)
     return df
 
@@ -132,39 +134,81 @@ if apply_button:
     if input_text:    
         qVectorTFIDF_bi = query(input_text)
         simTFIDF_bi = IndexTFIDF_bi[qVectorTFIDF_bi]
-        df['Coisine similarity'] = simTFIDF_bi
-        df_tfidf_bi = df.sort_values(by = 'Coisine similarity', ascending=False)
-        selected_columns = ["Brand",  "Review rating", "Original title", "Original review","Review Model","list price", "Review date", "Coisine similarity", "Topic", "Probability"]
+        df['Cosine similarity'] = simTFIDF_bi
+        df_tfidf_bi = df.sort_values(by = 'Cosine similarity', ascending=False)
+        selected_columns = ["Brand",  "Review rating", "Original title", "Original review","Review Model","List price", "Review date", "Cosine similarity", "Topic", "Probability"]
         # pd.set_option('display.max_colwidth', None)
 
         df_select = df_tfidf_bi[selected_columns] 
+        if topic:
+            if 'HP' in brand_list:
+                df_final = df_select[(df_select['Brand']=='HP') & (df_select['Topic']==topic) & (df_select['Review rating'].isin(rating_list)) 
+                                    & (df_select['List price']>=start_price) & (df_select['List price']<=end_price)
+                                    & (df_select['Probability']>=0.3) & (df_select["Cosine similarity"]>=0.1)]
+                df_final = df_final.drop_duplicates()
+                df_final.sort_values(by=['Cosine similarity', 'Probability'], inplace=True, ascending = False)
+                df_final = df_final.reset_index(drop=True)
+                df_final.index += 1
+                with st.expander('HP Review'):
+                    st.dataframe(df_final)
 
-        if 'HP' in brand_list:
-            df_final = df_select[(df_select['Brand']=='HP') & (df_select['Topic']==topic) & (df_select['Review rating'].isin(rating_list)) 
-                                & (df_select['list price']>=start_price) & (df_select['list price']<=end_price)
-                                & (df_select['Probability']>=0.3) & (df_select["Coisine similarity"]>=0.1)]
-            df_final = df_final.drop_duplicates()
-            df_final = df_final.reset_index(drop=True)
-            df_final.index += 1
-            with st.expander('HP Review'):
-                st.dataframe(df_final)
+            if 'Canon' in brand_list:
+                df_canon = df_select[(df_select['Brand']=='Canon') & (df_select['Topic']==topic) & (df_select['Review rating'].isin(rating_list)) 
+                                    & (df_select['List price']>=start_price) & (df_select['List price']<=end_price)
+                                    & (df_select['Probability']>=0.3) & (df_select["Cosine similarity"]>=0.1)]
+                df_canon = df_canon.drop_duplicates()
+                df_canon.sort_values(by=['Cosine similarity', 'Probability'], inplace=True, ascending = False)
+                df_canon = df_canon.reset_index(drop=True)
+                df_canon.index += 1
+                with st.expander('Canon Review'):
+                    st.dataframe(df_canon)
 
-        if 'Canon' in brand_list:
-            df_canon = df_select[(df_select['Brand']=='Canon') & (df_select['Topic']==topic) & (df_select['Review rating'].isin(rating_list)) 
-                                & (df_select['list price']>=start_price) & (df_select['list price']<=end_price)
-                                & (df_select['Probability']>=0.3) & (df_select["Coisine similarity"]>=0.1)]
-            df_canon = df_canon.drop_duplicates()
-            df_canon = df_canon.reset_index(drop=True)
-            df_canon.index += 1
-            with st.expander('Canon Review'):
-                st.dataframe(df_canon)
+            if 'Epson' in brand_list:
+                df_comp = df_select[(df_select['Brand']== 'Epson') & (df_select['Topic']==topic) & (df_select['Review rating'].isin(rating_list)) 
+                                    & (df_select['List price']>=start_price) & (df_select['List price']<=end_price)
+                                    & (df_select['Probability']>=0.3) & (df_select["Cosine similarity"]>=0.1)]
+                df_comp = df_comp.drop_duplicates()
+                df_comp.sort_values(by=['Cosine similarity', 'Probability'], inplace=True, ascending = False)
+                df_comp = df_comp.reset_index(drop=True)
+                df_comp.index += 1
+                with st.expander('Epson Review'):
+                    st.dataframe(df_comp)
+        else:
+            if 'HP' in brand_list:
+                df_final = df_select[(df_select['Brand']=='HP') & (df_select['Review rating'].isin(rating_list)) 
+                                    & (df_select['List price']>=start_price) & (df_select['List price']<=end_price)
+                                     & (df_select['Probability']>=0.3)& (df_select["Cosine similarity"]>=0.1)]
+                df_final['Topic'] = df_final.groupby('Original review')['Topic'].transform(lambda x: ', '.join(x))
+                df_final['Probability'] = df_final.groupby('Original review')['Probability'].transform(lambda x: ', '.join(x.astype(str)))
+                df_final.sort_values(by=['Cosine similarity', 'Probability'], inplace=True, ascending = False)
+                df_final = df_final.drop_duplicates()
+                df_final = df_final.reset_index(drop=True)
+                df_final.index += 1
+                with st.expander('HP Review'):
+                    st.dataframe(df_final)
 
-        if 'Epson' in brand_list:
-            df_comp = df_select[(df_select['Brand']== 'Epson') & (df_select['Topic']==topic) & (df_select['Review rating'].isin(rating_list)) 
-                                & (df_select['list price']>=start_price) & (df_select['list price']<=end_price)
-                                & (df_select['Probability']>=0.3) & (df_select["Coisine similarity"]>=0.1)]
-            df_comp = df_comp.drop_duplicates()
-            df_comp = df_comp.reset_index(drop=True)
-            df_comp.index += 1
-            with st.expander('Epson Review'):
-                st.dataframe(df_comp)
+            if 'Canon' in brand_list:
+                df_canon = df_select[(df_select['Brand']=='Canon')  & (df_select['Review rating'].isin(rating_list)) 
+                                    & (df_select['List price']>=start_price) & (df_select['List price']<=end_price)
+                                      & (df_select['Probability']>=0.3)& (df_select["Cosine similarity"]>=0.1)]
+                df_canon['Topic'] = df_canon.groupby('Original review')['Topic'].transform(lambda x: ', '.join(x))
+                df_canon['Probability'] = df_canon.groupby('Original review')['Probability'].transform(lambda x: ', '.join(x.astype(str)))
+                df_canon = df_canon.drop_duplicates()
+                df_canon.sort_values(by=['Cosine similarity', 'Probability'], inplace=True, ascending = False)
+                df_canon = df_canon.reset_index(drop=True)
+                df_canon.index += 1
+                with st.expander('Canon Review'):
+                    st.dataframe(df_canon)
+
+            if 'Epson' in brand_list:
+                df_comp = df_select[(df_select['Brand']== 'Epson')  & (df_select['Review rating'].isin(rating_list)) 
+                                    & (df_select['List price']>=start_price) & (df_select['List price']<=end_price)
+                                     & (df_select['Probability']>=0.3)& (df_select["Cosine similarity"]>=0.1)]
+                df_comp['Topic'] = df_comp.groupby('Original review')['Topic'].transform(lambda x: ', '.join(x))
+                df_comp['Probability'] = df_comp.groupby('Original review')['Probability'].transform(lambda x: ', '.join(x.astype(str)))
+                df_comp = df_comp.drop_duplicates()
+                df_comp.sort_values(by=['Cosine similarity', 'Probability'], inplace=True, ascending = False)
+                df_comp = df_comp.reset_index(drop=True)
+                df_comp.index += 1
+                with st.expander('Epson Review'):
+                    st.dataframe(df_comp)
